@@ -1,0 +1,15 @@
+type JIRAResponse {
+  summary: String
+  assignee: String
+  reporter: String
+  status: String
+  url: String
+  priority: String
+}
+
+type Query {
+  """
+  Get JIRA information for issue number (example: PROJ-23)
+  """
+  getJIRA(issue: String!): JIRAResponse
+}
