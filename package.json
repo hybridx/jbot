@@ -1,0 +1,36 @@
+{
+  "name": "jbot",
+  "version": "1.0.0",
+  "description": "A google bot to get JIRA information",
+  "scripts": {
+    "test": "jest",
+    "dev": "nodemon --exec 'babel-node index.js'"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/associate-run-projects/jbot.git"
+  },
+  "keywords": [
+    "bot"
+  ],
+  "author": "hybridx",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/associate-run-projects/jbot/issues"
+  },
+  "homepage": "https://github.com/associate-run-projects/jbot#readme",
+  "dependencies": {
+    "apollo-server-express": "^2.23.0",
+    "axios": "^0.21.1",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "graphql": "^15.5.0",
+    "jira-client": "^6.21.1"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.7.0",
+    "nodemon": "^2.0.7",
+    "npm-run-all": "^4.1.5"
+  }
+}
