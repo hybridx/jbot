@@ -27,9 +27,6 @@ app.post('/', async (req, res) => {
           return res.json({ 'text': `Thank you for adding me. Command \help` });
         case 'MESSAGE':
           const message = {
-            "actionResponse": {
-              "type": "actionResponseType"
-          },
             cards: await textParser(req.body.message.argumentText)
           };
           return res.json(message);
