@@ -20,22 +20,27 @@ app.get('/', function(req, res) {
 })
 
 app.post('/', async (req, res) => {
-  let message = '';
-  // console.info(req.body);
-  if (req.body && req.body.type) {
-    switch(req.body.type) {
-      case 'ADDED_TO_SPACE':
-        message = `Thank you for adding me. Command \help`;
-        break;
-      case 'MESSAGE':
-        // message = await fetchJIRAInfo(textParser(req.body.message.argumentText));
-        message = await textParser(req.body.message.argumentText);
-        break;
-      default:
-        message = 'Something went wrong. Please contact One Platform for any questions';
+  try {
+    if (req.body && req.body.type) {
+      switch(req.body.type) {
+        case 'ADDED_TO_SPACE':
+          return res.json({ 'text': `Thank you for adding me. Command \help` });
+        case 'MESSAGE':
+          const message = {
+            "actionResponse": {
+              "type": "actionResponseType"
+          },
+            cards: await textParser(req.body.message.argumentText)
+          };
+          return res.json(message);
+        default:
+          return res.json({ 'text': 'Please check your command' });
+      }
     }
+  } 
+  catch (error) {
+      return res.json({ 'text': `Something went wrong. Please contact One Platform for any questions` });
   }
-  return res.json({ 'text': JSON.stringify(message) });
 });
 
 // Start JBot functions
@@ -63,20 +68,82 @@ async function fetchJIRAInfo(issue) {
   try {
     const jiraDetails = await jira.getIssue(issue).then(res => res);
     if (jiraDetails.statusCode === 404) {
-      throw 'JIRA not found';
+      throw  `${issue} - JIRA not found`;
     }
     msg = {
-      summary: `${jiraDetails.fields.summary}`,
-      status: `${jiraDetails.fields.status.name}`,
-      reporter: `${jiraDetails.fields.reporter.name}`,
-      assignee: `${jiraDetails.fields.assignee.name}`,
-      priority: `${jiraDetails.fields.priority.name}`,
-      url: `https://projects.engineering.redhat.com/browse/${jiraDetails.key}`,
+      "sections": [
+        {
+          "widgets": [
+            {
+              "textParagraph": {
+                "text": `${jiraDetails.fields.summary}`
+              }
+            }
+          ]
+        },
+        {
+          "widgets": [
+              {
+                "keyValue": {
+                  "topLabel": "Status",
+                  "content": `${jiraDetails.fields.status.name}`
+                  }
+              },
+              {
+                "keyValue": {
+                  "topLabel": "Priority",
+                  "content": `${jiraDetails.fields.priority.name}`,
+                  }
+              },
+              {
+                "keyValue": {
+                  "topLabel": "Reporter",
+                  "content": `${jiraDetails.fields.reporter.name}`
+                  }
+              },
+              {
+                "keyValue": {
+                  "topLabel": "Assignee",
+                  "content": `${jiraDetails.fields.assignee !== null ? jiraDetails.fields.assignee.name : 'unassigned'}`,
+                }
+              },
+          ]
+        },
+        {
+          "widgets": [
+              {
+                  "buttons": [
+                    {
+                      "textButton": {
+                        "text": "OPEN JIRA",
+                        "onClick": {
+                          "openLink": {
+                            "url": `https://projects.engineering.redhat.com/browse/${jiraDetails.key}`,
+                          }
+                        }
+                      }
+                    }
+                  ]
+              }
+          ]
+        }
+      ]
     };
     return msg;
   } catch (error) {
-    // console.error(error);
-    return `Something went wrong - ${error}`;
+    return {
+      "sections": [
+        {
+          "widgets": [
+            {
+              "textParagraph": {
+                "text": `${error}`
+              }
+            }
+          ]
+        }
+      ]
+    };
   }
 }
 
