@@ -73,7 +73,7 @@ async function fetchJIRAInfo(issue) {
           "widgets": [
             {
               "textParagraph": {
-                "text": `${jiraDetails.fields.summary}`
+                "text": `<a target="_blank" href="https://projects.engineering.redhat.com/browse/${jiraDetails.key}">Issue#${jiraDetails.key} - ${jiraDetails.fields.summary}</a>`
               }
             }
           ]
@@ -106,24 +106,6 @@ async function fetchJIRAInfo(issue) {
               },
           ]
         },
-        {
-          "widgets": [
-              {
-                  "buttons": [
-                    {
-                      "textButton": {
-                        "text": "OPEN JIRA",
-                        "onClick": {
-                          "openLink": {
-                            "url": `https://projects.engineering.redhat.com/browse/${jiraDetails.key}`,
-                          }
-                        }
-                      }
-                    }
-                  ]
-              }
-          ]
-        }
       ]
     };
     return msg;
@@ -143,4 +125,3 @@ async function fetchJIRAInfo(issue) {
     };
   }
 }
-
