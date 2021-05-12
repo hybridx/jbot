@@ -24,7 +24,7 @@ app.post('/', async (req, res) => {
     if (req.body && req.body.type) {
       switch(req.body.type) {
         case 'ADDED_TO_SPACE':
-          return res.json({ 'text': `Thank you for adding me. Command \help` });
+          return res.json({ 'text': `Thank you for adding me. Command *help* for more information` });
         case 'MESSAGE':
           const message = {
             cards: await textParser(req.body.message.argumentText)
