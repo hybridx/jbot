@@ -1,6 +1,6 @@
 # JIRA Bot 👋
 
-A jira bot which fetches JIRA issues for you and a bunch of other stuff
+A bot that retrieves the JIRA issue details from your JIRA server.
 
 ## Usage (Commands)
 
@@ -17,11 +17,11 @@ JIRA_HOST=developer.atlassian.com
 JIRA_USER=serviceAccount
 JIRA_PASS=serviceAccountPassword
 ```
-2. Install libraries using 
+2. Installation
 ```sh
 npm install
 ```
-3. Run the for development.</br>
+3. Run on development env
 ```sh
 npm run dev
 ```

@@ -27,7 +27,7 @@ app.post('/', async (req, res) => {
           return res.json({ 'text': `Thank you for adding me. Command *help* for more information` });
         case 'MESSAGE':
           const message = {
-            cards: await textParser(req.body.message.argumentText)
+            cards: await parseText(req.body.message.argumentText)
           };
           return res.json(message);
         default:
@@ -46,12 +46,12 @@ app.post('/', async (req, res) => {
  * @param {text message from user} argumentText 
  * @returns Sanitized text which also sends the appropriate response
  */
-async function textParser(argumentText) {
+async function parseText(argumentText) {
   const regex = /\b\w*[-']\w*\b/g;
   const issueTitles = argumentText
     .match(regex)
     .map(word => word.toUpperCase());
-  const issues = await Promise.all(issueTitles.map(issue => fetchJIRAInfo(issue)));
+  const issues = await Promise.all(issueTitles.map(issue => getJIRADetails(issue)));
   return issues;
 }
 
@@ -60,7 +60,7 @@ async function textParser(argumentText) {
  * @param {JIRA Issue number} issue 
  * @returns Information about the JIRA - summary, status, reporter, assignee and priority
  */
-async function fetchJIRAInfo(issue) {
+async function getJIRADetails(issue) {
   let msg = '';
   try {
     const jiraDetails = await jira.getIssue(issue).then(res => res);
