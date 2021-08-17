@@ -73,7 +73,7 @@ async function getJIRADetails(issue) {
           "widgets": [
             {
               "textParagraph": {
-                "text": `<a target="_blank" href="https://projects.engineering.redhat.com/browse/${jiraDetails.key}">Issue#${jiraDetails.key} - ${jiraDetails.fields.summary}</a>`
+                "text": `<a target="_blank" href="https://issues.redhat.com/browse/${jiraDetails.key}">Issue#${jiraDetails.key} - ${jiraDetails.fields.summary}</a>`
               }
             }
           ]
