@@ -184,7 +184,7 @@ function getHelp() {
               {
                 "keyValue": {
                   "topLabel": "Command /comments",
-                  "content": `Gets latest top 5 commits`,
+                  "content": `Gets latest top 5 comments`,
                   "bottomLabel": "eg. @JIRABot ONEPLAT-1 /comments <issue-number(eg: ONEPLAT-1)>",
                   "contentMultiline": true
                 }
