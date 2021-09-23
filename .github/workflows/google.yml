@@ -1,0 +1,19 @@
+name: Deploy
+
+on:
+  release:
+    types: [created]
+jobs:
+  setup-build-publish-deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Deploy
+      uses: google-github-actions/deploy-appengine@main
+      with:
+        credentials: ${{ secrets.gcp_credentials }}
+        project_id: ${{ secrets.project_id }}
+        promote: true
