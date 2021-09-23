@@ -1,3 +1,4 @@
+// https://www.npmjs.com/package/node-nlp
 const express = require('express');
 const JiraApi = require ('jira-client');
 require('dotenv').config();
@@ -24,10 +25,10 @@ app.post('/', async (req, res) => {
     if (req.body && req.body.type) {
       switch(req.body.type) {
         case 'ADDED_TO_SPACE':
-          return res.json({ 'text': `Thank you for adding me. Command *help* for more information` });
+          return res.json({ 'text': `Thank you for adding me. Command */help* for more information` });
         case 'MESSAGE':
           const message = {
-            cards: await parseText(req.body.message.argumentText)
+            cards: await parseText(req.body)
           };
           return res.json(message);
         default:
@@ -36,7 +37,8 @@ app.post('/', async (req, res) => {
     }
   } 
   catch (error) {
-      return res.json({ 'text': `Something went wrong. Please contact One Platform for any questions` });
+    console.error(error);
+    return res.json({ 'text': 'Something went wrong. Please contact *associate-run-projects@redhat.com* for any questions' });
   }
 });
 
@@ -46,13 +48,29 @@ app.post('/', async (req, res) => {
  * @param {text message from user} argumentText 
  * @returns Sanitized text which also sends the appropriate response
  */
-async function parseText(argumentText) {
+async function parseText(body) {
+  const helloTexts = ['hi', 'hello', 'hey', 'help'];
+  const commands = ['comments', 'addComment'];
+  const argumentText = body.message.argumentText;
+  const userID = body.message.sender.email.split('@')[0];
   const regex = /\b\w*[-']\w*\b/g;
-  const issueTitles = argumentText
-    .match(regex)
-    .map(word => word.toUpperCase());
-  const issues = await Promise.all(issueTitles.map(issue => getJIRADetails(issue)));
-  return issues;
+  const issueTitles = argumentText.match(regex);
+  if(helloTexts.some(word => argumentText.toLowerCase().includes(word)) && !commands.some(word => argumentText.includes(word))) {
+    return getHelp();
+  }
+  if (argumentText.includes('/comments')) {
+    const comments = await jira.getComments(issueTitles[0].toUpperCase());
+    return issueComments(comments, issueTitles[0], -5);
+  }
+  // if (argumentText.includes('/getIssues')) {
+  //   const userIssues = await jira.getUsersIssues(userID, true);
+  //   return issueTemplate(userID, userIssues);
+  // }
+  // TODO: Improvements required for addComment feature
+  if (argumentText.includes('/addComment')) {
+    const addedComment = await jira.addComment(issueTitles[0].toUpperCase(), `${argumentText.match(/'([^']+)'/)[1]} - added by [~${userID}]`);
+  }
+  return Promise.all(issueTitles.map(issue => getJIRADetails(issue.toUpperCase())));
 }
 
 /**
@@ -67,13 +85,14 @@ async function getJIRADetails(issue) {
     if (jiraDetails.statusCode === 404) {
       throw  `${issue} - JIRA not found`;
     }
+    // Create a template in the future - Where you will have to pass data and the template(parser) would return widgets accordingly
     msg = {
       "sections": [
         {
           "widgets": [
             {
               "textParagraph": {
-                "text": `<a target="_blank" href="https://projects.engineering.redhat.com/browse/${jiraDetails.key}">Issue#${jiraDetails.key} - ${jiraDetails.fields.summary}</a>`
+                "text": `<a target="_blank" href="https://issues.redhat.com/browse/${jiraDetails.key}">Issue#${jiraDetails.key} - ${jiraDetails.fields.summary}</a>`
               }
             }
           ]
@@ -110,13 +129,14 @@ async function getJIRADetails(issue) {
     };
     return msg;
   } catch (error) {
+    console.error(error);
     return {
       "sections": [
         {
           "widgets": [
             {
               "textParagraph": {
-                "text": `${error}`
+                "text": `JIRA not found`
               }
             }
           ]
@@ -124,4 +144,103 @@ async function getJIRADetails(issue) {
       ]
     };
   }
+}
+
+
+function getHelp() {
+  return [
+      {
+        "header": {
+          "title": "JIRA Bot Help",
+          "subtitle": "Bot for JIRA related tasks"
+        },
+        "sections": [
+          {
+            "widgets": [
+              {
+                "keyValue": {
+                  "topLabel": "Get issues",
+                  "content": `Get information about one or multiple issues`,
+                  "bottomLabel": "eg. @JIRABot ONEPLAT-1 ONEPLAT-2",
+                  "contentMultiline": true
+                }
+              },
+              {
+                "keyValue": {
+                  "topLabel": "Command /help",
+                  "content": 'Displays help and commands',
+                  "bottomLabel": "eg. @JIRABot /help",
+                  "contentMultiline": true
+                }
+              },
+              {
+                "keyValue": {
+                  "topLabel": "Command /addComment",
+                  "content": 'Adds a comment to the given issue',
+                  "bottomLabel": "eg. @JIRABot /addComment ONEPLAT-1 'Comment'",
+                  "contentMultiline": true
+                }
+              },
+              {
+                "keyValue": {
+                  "topLabel": "Command /comments",
+                  "content": `Gets latest top 5 comments`,
+                  "bottomLabel": "eg. @JIRABot ONEPLAT-1 /comments <issue-number(eg: ONEPLAT-1)>",
+                  "contentMultiline": true
+                }
+              },
+
+
+            ]
+          },
+          {
+            "widgets": [
+              {
+                "textParagraph": {
+                  "text": 'We would love contributions from you @ <a href="https://github.com/associate-run-projects/jbot">GitHub project</a>!'
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ];
+}
+
+function issueComments(comments, issueTitle, maxComments = -5) {
+  if (comments.comments.length) {
+    return [
+      {
+        "header": {
+          "title": `<a target="_blank" href="https://issues.redhat.com/browse/${issueTitle.toUpperCase()}">${issueTitle.toUpperCase()}</a>`
+        },
+        "sections": [
+          {
+            "widgets": [
+              ...comments.comments.slice(maxComments).map((comment, index) => {
+                return {
+                  "textParagraph": {
+                    "text": `${index+1}. ${comment.body}`,
+                  }
+                };
+              })
+            ]
+          },
+        ]
+      }
+    ];
+  }
+  return {
+    "sections": [
+      {
+        "widgets": [
+          {
+            "textParagraph": {
+              "text": `No comments found for <a target="_blank" href="https://issues.redhat.com/browse/${issueTitle.toUpperCase()}">${issueTitle.toUpperCase()}</a>`
+            }
+          }
+        ]
+      }
+    ]
+  };
 }
