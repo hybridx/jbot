@@ -1,8 +1,11 @@
 name: Deploy
-
+env:
+  ENV_FILE: ${{ secrets.ENV_FILE }}
+  
 on:
   release:
     types: [created]
+  workflow_dispatch:
 jobs:
   setup-build-publish-deploy:
     name: Deploy
@@ -14,7 +17,7 @@ jobs:
       
     - name: Create .env
       run: |
-         echo ${secrets.ENV_FILE} >> .env
+         echo ${ENV_FILE} >> .env
     - name: Deploy
       uses: google-github-actions/deploy-appengine@main
       with:
