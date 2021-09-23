@@ -1,0 +1,27 @@
+name: Deploy
+
+on:
+  release:
+    types: [created]
+
+env:
+  PROJECT_ID: ${{ secrets.GKE_PROJECT }}
+  GKE_CLUSTER: cluster-1    # TODO: update to cluster name
+  GKE_ZONE: us-central1-c   # TODO: update to cluster zone
+  DEPLOYMENT_NAME: gke-test # TODO: update to deployment name
+  IMAGE: static-site
+
+jobs:
+  setup-build-publish-deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Deploy
+      uses: google-github-actions/deploy-appengine@main
+      with:
+        credentials: ${{ secrets.gcp_credentials }}
+        project_id: ${{ secrets.project_id }}
+        promote: true
