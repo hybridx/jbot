@@ -11,6 +11,10 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v2
+      
+    - name: Create .env
+      run: |
+         echo ${secrets.ENV_FILE} >> .env
     - name: Deploy
       uses: google-github-actions/deploy-appengine@main
       with:
