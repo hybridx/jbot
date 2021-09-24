@@ -17,7 +17,10 @@ jobs:
       
     - name: Create .env
       run: |
-         echo ${ENV_FILE} >> .env
+         echo PORT=${{ secrets.PORT }} >> .env
+         echo JIRA_HOST=${{ secrets.JIRA_HOST }} >> .env
+         echo JIRA_USER=${{ secrets.JIRA_USER }} >> .env
+         echo JIRA_PASS=${{ secrets.JIRA_PASS }} >> .env
     - name: Deploy
       uses: google-github-actions/deploy-appengine@main
       with:
