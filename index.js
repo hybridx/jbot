@@ -62,10 +62,13 @@ async function parseText(body) {
     const comments = await jira.getComments(issueTitles[0].toUpperCase());
     return issueComments(comments, issueTitles[0], -5);
   }
-  // if (argumentText.includes('/getIssues')) {
-  //   const userIssues = await jira.getUsersIssues(userID, true);
-  //   return issueTemplate(userID, userIssues);
-  // }
+  if (argumentText.includes('/assign')) {
+    const assignment = await jira.updateAssignee(issueTitles[0].toUpperCase(), userID)
+  }
+  if (argumentText.includes('/getMyIssues')) {
+    const userIssues = await jira.getUsersIssues(userID, true);
+    return getIssues(userIssues.issues);
+  }
   // TODO: Improvements required for addComment feature
   if (argumentText.includes('/addComment')) {
     const addedComment = await jira.addComment(issueTitles[0].toUpperCase(), `${argumentText.match(/'([^']+)'/)[1]} - added by [~${userID}]`);
@@ -79,70 +82,15 @@ async function parseText(body) {
  * @returns Information about the JIRA - summary, status, reporter, assignee and priority
  */
 async function getJIRADetails(issue) {
-  let msg = '';
   try {
     const jiraDetails = await jira.getIssue(issue).then(res => res);
     if (jiraDetails.statusCode === 404) {
       throw  `${issue} - JIRA not found`;
     }
-    // Create a template in the future - Where you will have to pass data and the template(parser) would return widgets accordingly
-    msg = {
-      "sections": [
-        {
-          "widgets": [
-            {
-              "textParagraph": {
-                "text": `<a target="_blank" href="https://issues.redhat.com/browse/${jiraDetails.key}">Issue#${jiraDetails.key} - ${jiraDetails.fields.summary}</a>`
-              }
-            }
-          ]
-        },
-        {
-          "widgets": [
-              {
-                "keyValue": {
-                  "topLabel": "Status",
-                  "content": `${jiraDetails.fields.status.name}`
-                  }
-              },
-              {
-                "keyValue": {
-                  "topLabel": "Priority",
-                  "content": `${jiraDetails.fields.priority.name}`,
-                  }
-              },
-              {
-                "keyValue": {
-                  "topLabel": "Reporter",
-                  "content": `${jiraDetails.fields.reporter.name}`
-                  }
-              },
-              {
-                "keyValue": {
-                  "topLabel": "Assignee",
-                  "content": `${jiraDetails.fields.assignee !== null ? jiraDetails.fields.assignee.name : 'unassigned'}`,
-                }
-              },
-          ]
-        },
-      ]
-    };
-    return msg;
+    return messageTemplate(jiraDetails);
   } catch (error) {
     console.error(error);
-    return {
-      "sections": [
-        {
-          "widgets": [
-            {
-              "textParagraph": {
-                "text": `JIRA not found`
-              }
-            }
-          ]
-        }
-      ]
-    };
+    return jiraNotFound();
   }
 }
 
@@ -167,6 +115,14 @@ function getHelp() {
               },
               {
                 "keyValue": {
+                  "topLabel": "Assign issue",
+                  "content": `Assign an issue to yourself`,
+                  "bottomLabel": "eg. @JIRABot /assign",
+                  "contentMultiline": true
+                }
+              },
+              {
+                "keyValue": {
                   "topLabel": "Command /help",
                   "content": 'Displays help and commands',
                   "bottomLabel": "eg. @JIRABot /help",
@@ -178,6 +134,14 @@ function getHelp() {
                   "topLabel": "Command /addComment",
                   "content": 'Adds a comment to the given issue',
                   "bottomLabel": "eg. @JIRABot /addComment ONEPLAT-1 'Comment'",
+                  "contentMultiline": true
+                }
+              },
+              {
+                "keyValue": {
+                  "topLabel": "Get My Issues",
+                  "content": `Get information about users open issues`,
+                  "bottomLabel": "eg. @JIRABot /getMyIssues",
                   "contentMultiline": true
                 }
               },
@@ -244,3 +208,72 @@ function issueComments(comments, issueTitle, maxComments = -5) {
     ]
   };
 }
+
+function getIssues(userIssues) {
+  if (userIssues.length) {
+    return userIssues.map(jiraDetails => messageTemplate(jiraDetails));
+  }
+  return jiraNotFound();
+}
+
+
+const messageTemplate = (jiraDetails) => {
+  return {
+    "sections": [
+      {
+        "widgets": [
+          {
+            "textParagraph": {
+              "text": `<a target="_blank" href="https://issues.redhat.com/browse/${jiraDetails.key}">${jiraDetails.key} - ${jiraDetails.fields.summary}</a>`
+            }
+          }
+        ]
+      },
+      {
+        "widgets": [
+            {
+              "keyValue": {
+                "topLabel": "Status",
+                "content": `${jiraDetails.fields.status.name}`
+                }
+            },
+            {
+              "keyValue": {
+                "topLabel": "Priority",
+                "content": `${jiraDetails.fields.priority.name}`,
+                }
+            },
+            {
+              "keyValue": {
+                "topLabel": "Reporter",
+                "content": `${jiraDetails.fields.reporter.name}`
+                }
+            },
+            {
+              "keyValue": {
+                "topLabel": "Assignee",
+                "content": `${jiraDetails.fields.assignee !== null ? jiraDetails.fields.assignee.name : 'unassigned'}`,
+              }
+            },
+        ]
+      },
+    ]
+  };
+}
+
+
+const jiraNotFound = () => {
+return {
+  "sections": [
+    {
+      "widgets": [
+        {
+          "textParagraph": {
+            "text": 'JIRA not found'
+          }
+        }
+      ]
+    }
+  ]
+}
+};
