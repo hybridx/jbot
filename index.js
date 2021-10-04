@@ -16,8 +16,8 @@ const jira = new JiraApi({
 
 app.listen(PORT, () => { console.info(`Listening on Port# - ${PORT}`); })
 
-app.get('/', function(res, statusCode, data) {
-  res.writeHead(statusCode, {'Content-Type': 'text/html'});
+app.get('/', function(req, res) {
+  res.writeHead(200, {'Content-Type': 'text/html'});
   res.write(`<h1>hello world</h1>`);
   res.end();
 })
