@@ -1,5 +1,5 @@
 # JIRA Bot 👋
-[![Deploy](https://github.com/associate-run-projects/jbot/actions/workflows/google.yml/badge.svg)](https://github.com/associate-run-projects/jbot/actions/workflows/google.yml)
+[![Deploy to Prod](https://github.com/associate-run-projects/jbot/actions/workflows/google.yml/badge.svg?branch=main)](https://github.com/associate-run-projects/jbot/actions/workflows/google.yml)
 
 A bot that retrieves the JIRA issue details from your JIRA server.
 
