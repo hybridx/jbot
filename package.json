@@ -23,7 +23,7 @@
   "homepage": "https://github.com/associate-run-projects/jbot#readme",
   "dependencies": {
     "dotenv": "^9.0.2",
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "jira-client": "^6.21.1",
     "nodemon": "^2.0.7"
   }
